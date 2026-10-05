@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LUCIDFAX Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#fff;--fg:#000;--mut:#555;--ln:#ddd;--c1:#eee;--c2:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:11px/1.4 'Space Mono',ui-monospace,Menlo,monospace;font-weight:400;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--fg)}
+h1{font-size:11px;margin:0;font-weight:400}
+header span{color:var(--mut)}
+main{flex:1;display:flex;min-height:0}
+aside{width:280px;flex:none;overflow-y:auto;border-right:1px solid var(--fg)}
+details{border-bottom:1px solid var(--fg)}
+summary{cursor:pointer;padding:8px 12px;font-weight:400;display:flex;justify-content:space-between;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+'}details[open] summary::after{content:'–'}
+.b{padding:2px 12px 10px}
+.r{display:grid;grid-template-columns:88px 1fr 30px;gap:8px;align-items:center;margin:6px 0}
+.r label{color:var(--mut)}
+.r output{text-align:right;font-size:10px}
+input,select,button{font:inherit;color:var(--fg);background:var(--bg);border:0;border-radius:0;padding:2px 0;min-width:0;outline:0}
+select,input[type=number]{border-bottom:1px solid var(--fg)}
+.r select,.r input[type=number],.r input[type=color]{grid-column:2/4}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;background:linear-gradient(var(--fg),var(--fg)) center/100% 1px no-repeat;margin:0;padding:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--bg);border:1px solid var(--fg);cursor:grab}
+input[type=range]::-moz-range-thumb{width:9px;height:9px;border-radius:50%;background:var(--bg);border:1px solid var(--fg);cursor:grab}
+input[type=color]{-webkit-appearance:none;appearance:none;width:14px;height:14px;padding:0;border:1px solid var(--fg);border-radius:0;cursor:pointer;overflow:hidden}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:0;border-radius:0}
+input[type=color]::-moz-color-swatch{border:0;border-radius:0}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;width:auto;height:auto;margin:0;padding:0;cursor:pointer;color:var(--mut)}
+input[type=checkbox]::after{content:'off'}input[type=checkbox]:checked{color:var(--fg)}input[type=checkbox]:checked::after{content:'on'}
+button{cursor:pointer;border:1px solid var(--fg);padding:5px 8px}
+button:hover{background:var(--fg);color:var(--bg)}
+.bt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+#area{flex:1;display:flex;align-items:center;justify-content:center;min-width:0;padding:16px;background:var(--bg)}
+canvas{display:block;outline:1px solid var(--fg);cursor:crosshair;touch-action:none;background:repeating-conic-gradient(var(--c1) 0 25%,var(--c2) 0 50%) 0 0/16px 16px}
+@media(max-width:760px){main{flex-direction:column-reverse}aside{width:auto;height:46%;border-right:0;border-top:1px solid var(--fg)}}
+footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:9px 12px;border-top:1px solid var(--fg)}
+footer .f{display:flex;align-items:center;gap:8px;color:var(--mut)}
+footer .f input[type=range]{width:90px}footer .f input[type=number]{width:40px;text-align:right}
+footer #sc{flex:1;min-width:140px;width:auto}
+footer output{color:var(--fg);min-width:30px}
+#desc{padding:10px 12px;color:var(--mut);border-bottom:1px solid var(--fg);margin:0}
+#clr{display:block;width:calc(100% - 24px);margin:10px 12px;background:var(--fg);color:var(--bg);padding:9px;font-size:12px}
+#clr:hover{background:var(--bg);color:var(--fg)}
+#don{color:var(--fg);text-decoration:none;border:1px solid var(--fg);padding:3px 10px}#don:hover{background:var(--fg);color:var(--bg)}
+.ly{display:flex;align-items:center;gap:4px;padding:3px 4px;border-bottom:1px solid var(--ln);cursor:pointer}
+.ly.a{background:var(--fg);color:var(--bg)}.ly.a button{color:var(--bg)}.ly span{flex:1}
+.ly button{border:0;padding:0 4px;background:none;color:var(--fg)}.ly button:hover{text-decoration:underline;background:none}
+
+[data-theme=black]{--bg:#000;--fg:#fff;--mut:#aaa;--ln:#333;--c1:#1c1c1c;--c2:#000;color-scheme:dark}
+[data-theme=grey60]{--bg:#666;--fg:#fff;--mut:#ddd;--ln:#7a7a7a;--c1:#707070;--c2:#666;color-scheme:dark}
+[data-theme=grey80]{--bg:#333;--fg:#fff;--mut:#bbb;--ln:#4a4a4a;--c1:#3d3d3d;--c2:#333;color-scheme:dark}
+#th{width:44px;flex:none;border-left:1px solid var(--fg);display:flex;flex-direction:column;align-items:center;gap:12px;padding:14px 0}
+#th span{writing-mode:vertical-rl;color:var(--mut);letter-spacing:.05em}
+#th button{width:18px;height:18px;padding:0;border:1px solid var(--fg)}
+#th button.on{outline:1px solid var(--fg);outline-offset:3px}
+#cw{position:relative;line-height:0}
+#cw.mh::before,#cw.mv::after{content:'';position:absolute;pointer-events:none;opacity:.45}
+#cw.mh::before{left:50%;top:0;bottom:0;border-left:1px dashed var(--fg)}
+#cw.mv::after{top:50%;left:0;right:0;border-top:1px dashed var(--fg)}
+@media(max-width:760px){#th{width:auto;flex-direction:row;border-left:0;border-bottom:1px solid var(--fg);padding:8px 12px}#th span{writing-mode:horizontal-tb}}
+</style></head><body>
+<header><h1>LUCIDFAX Tool</h1><span><span id="info"></span> &nbsp; <a id="don" href="https://paypal.me/studiomarseca" target="_blank" rel="noopener">Donate</a></span></header>
+<main><aside><p id="desc">Create visuals however you like, built from your own strokes. Stack layers into a composition, animate them, then export as PNG, JPG, PDF or video.</p><button id="clr">Clear canvas</button><div id="p"></div></aside><div id="area"><div id="cw"><canvas id="c"></canvas></div></div><nav id="th"><span>Theme</span><button data-t="white" style="background:#fff" title="White"></button><button data-t="grey60" style="background:#666" title="Grey 60%"></button><button data-t="grey80" style="background:#333" title="Grey 80%"></button><button data-t="black" style="background:#000" title="Black"></button></nav></main>
+<footer id="F">
+<button id="pl">Play</button>
+<input type="range" id="sc" min="0" max="1000" value="0"><output id="tm">0.0s</output>
+<span class="f">Motion<select data-id="amv"><option>None</option><option>Float</option><option>Breathe</option><option>Glitch</option><option>Distortion</option><option>Rotating light</option></select></span>
+<span class="f">Cycles<input type="range" data-id="acy" min="1" max="8" value="1"><output>1</output></span>
+<span class="f">Intensity<input type="range" data-id="aam" min="1" max="100" value="60"><output>60</output></span>
+<span class="f">Duration s<input type="number" data-id="adu" min="1" max="30" value="4"></span>
+<button id="vx">Export video</button>
+</footer>
+<script>
+/*! mp4-muxer 5.2.2 · MIT License · (c) 2023 Vanilagy · github.com/Vanilagy/mp4-muxer */
+"use strict";var Mp4Muxer=(()=>{var we=Object.defineProperty,at=Object.getOwnPropertyDescriptor,nt=Object.getOwnPropertyNames,ot=Object.prototype.hasOwnProperty,ht=(e,t)=>{for(var s in t)we(e,s,{get:t[s],enumerable:!0})},lt=(e,t,s,r)=>{if(t&&typeof t=="object"||typeof t=="function")for(let a of nt(t))!ot.call(e,a)&&a!==s&&we(e,a,{get:()=>t[a],enumerable:!(r=at(t,a))||r.enumerable});return e},ft=e=>lt(we({},"__esModule",{value:!0}),e),ve=(e,t,s)=>{if(!t.has(e))throw TypeError("Cannot "+s)},i=(e,t,s)=>(ve(e,t,"read from private field"),s?s.call(e):t.get(e)),d=(e,t,s)=>{if(t.has(e))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(e):t.set(e,s)},C=(e,t,s,r)=>(ve(e,t,"write to private field"),r?r.call(e,s):t.set(e,s),s),ut=(e,t,s,r)=>({set _(a){C(e,t,a,s)},get _(){return i(e,t,r)}}),m=(e,t,s)=>(ve(e,t,"access private method"),s),Re={};ht(Re,{ArrayBufferTarget:()=>qe,FileSystemWritableFileStreamTarget:()=>Xe,Muxer:()=>vi,StreamTarget:()=>Te});var p=new Uint8Array(8),z=new DataView(p.buffer),y=e=>[(e%256+256)%256],c=e=>(z.setUint16(0,e,!1),[p[0],p[1]]),dt=e=>(z.setInt16(0,e,!1),[p[0],p[1]]),Pe=e=>(z.setUint32(0,e,!1),[p[1],p[2],p[3]]),n=e=>(z.setUint32(0,e,!1),[p[0],p[1],p[2],p[3]]),mt=e=>(z.setInt32(0,e,!1),[p[0],p[1],p[2],p[3]]),x=e=>(z.setUint32(0,Math.floor(e/2**32),!1),z.setUint32(4,e,!1),[p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]]),ge=e=>(z.setInt16(0,2**8*e,!1),[p[0],p[1]]),A=e=>(z.setInt32(0,2**16*e,!1),[p[0],p[1],p[2],p[3]]),ye=e=>(z.setInt32(0,2**30*e,!1),[p[0],p[1],p[2],p[3]]),E=(e,t=!1)=>{let s=Array(e.length).fill(null).map((r,a)=>e.charCodeAt(a));return t&&s.push(0),s},se=e=>e&&e[e.length-1],Ce=e=>{let t;for(let s of e)(!t||s.presentationTimestamp>t.presentationTimestamp)&&(t=s);return t},O=(e,t,s=!0)=>{let r=e*t;return s?Math.round(r):r},Le=e=>{let t=e*(Math.PI/180),s=Math.cos(t),r=Math.sin(t);return[s,r,0,-r,s,0,0,0,1]},Ve=Le(0),je=e=>[A(e[0]),A(e[1]),ye(e[2]),A(e[3]),A(e[4]),ye(e[5]),A(e[6]),A(e[7]),ye(e[8])],X=e=>!e||typeof e!="object"?e:Array.isArray(e)?e.map(X):Object.fromEntries(Object.entries(e).map(([t,s])=>[t,X(s)])),V=e=>e>=0&&e<2**32,v=(e,t,s)=>({type:e,contents:t&&new Uint8Array(t.flat(10)),children:s}),w=(e,t,s,r,a)=>v(e,[y(t),Pe(s),r??[]],a),pt=e=>{let t=512;return e.fragmented?v("ftyp",[E("iso5"),n(t),E("iso5"),E("iso6"),E("mp41")]):v("ftyp",[E("isom"),n(t),E("isom"),e.holdsAvc?E("avc1"):[],E("mp41")])},Se=e=>({type:"mdat",largeSize:e}),ct=e=>({type:"free",size:e}),re=(e,t,s=!1)=>v("moov",null,[wt(t,e),...e.map(r=>vt(r,t)),s?Gt(e):null]),wt=(e,t)=>{let s=O(Math.max(0,...t.filter(l=>l.samples.length>0).map(l=>{const u=Ce(l.samples);return u.presentationTimestamp+u.duration})),Ae),r=Math.max(...t.map(l=>l.id))+1,a=!V(e)||!V(s),o=a?x:n;return w("mvhd",+a,0,[o(e),o(e),n(Ae),o(s),A(1),ge(1),Array(10).fill(0),je(Ve),Array(24).fill(0),n(r)])},vt=(e,t)=>v("trak",null,[gt(e,t),yt(e,t)]),gt=(e,t)=>{let s=Ce(e.samples),r=O(s?s.presentationTimestamp+s.duration:0,Ae),a=!V(t)||!V(r),o=a?x:n,l;return e.info.type==="video"?l=typeof e.info.rotation=="number"?Le(e.info.rotation):e.info.rotation:l=Ve,w("tkhd",+a,3,[o(t),o(t),n(e.id),n(0),o(r),Array(8).fill(0),c(0),c(0),ge(e.info.type==="audio"?1:0),c(0),je(l),A(e.info.type==="video"?e.info.width:0),A(e.info.type==="video"?e.info.height:0)])},yt=(e,t)=>v("mdia",null,[Ct(e,t),St(e.info.type==="video"?"vide":"soun"),Tt(e)]),Ct=(e,t)=>{let s=Ce(e.samples),r=O(s?s.presentationTimestamp+s.duration:0,e.timescale),a=!V(t)||!V(r),o=a?x:n;return w("mdhd",+a,0,[o(t),o(t),n(e.timescale),o(r),c(21956),c(0)])},St=e=>w("hdlr",0,0,[E("mhlr"),E(e),n(0),n(0),n(0),E("mp4-muxer-hdlr",!0)]),Tt=e=>v("minf",null,[e.info.type==="video"?bt():_t(),kt(),At(e)]),bt=()=>w("vmhd",0,1,[c(0),c(0),c(0),c(0)]),_t=()=>w("smhd",0,0,[c(0),c(0)]),kt=()=>v("dinf",null,[Et()]),Et=()=>w("dref",0,0,[n(1)],[zt()]),zt=()=>w("url ",0,1),At=e=>{const t=e.compositionTimeOffsetTable.length>1||e.compositionTimeOffsetTable.some(s=>s.sampleCompositionTimeOffset!==0);return v("stbl",null,[Ot(e),Vt(e),jt(e),$t(e),Ht(e),qt(e),t?Xt(e):null])},Ot=e=>w("stsd",0,0,[n(1)],[e.info.type==="video"?Mt(ri[e.info.codec],e):Rt(ni[e.info.codec],e)]),Mt=(e,t)=>v(e,[Array(6).fill(0),c(1),c(0),c(0),Array(12).fill(0),c(t.info.width),c(t.info.height),n(4718592),n(4718592),n(0),c(1),Array(32).fill(0),c(24),dt(65535)],[ai[t.info.codec](t),t.info.decoderConfig.colorSpace?Ut(t):null]),Bt={bt709:1,bt470bg:5,smpte170m:6},It={bt709:1,smpte170m:6,"iec61966-2-1":13},Dt={rgb:0,bt709:1,bt470bg:5,smpte170m:6},Ut=e=>v("colr",[E("nclx"),c(Bt[e.info.decoderConfig.colorSpace.primaries]),c(It[e.info.decoderConfig.colorSpace.transfer]),c(Dt[e.info.decoderConfig.colorSpace.matrix]),y((e.info.decoderConfig.colorSpace.fullRange?1:0)<<7)]),xt=e=>e.info.decoderConfig&&v("avcC",[...new Uint8Array(e.info.decoderConfig.description)]),Wt=e=>e.info.decoderConfig&&v("hvcC",[...new Uint8Array(e.info.decoderConfig.description)]),Ft=e=>{if(!e.info.decoderConfig)return null;let t=e.info.decoderConfig;if(!t.colorSpace)throw new Error("'colorSpace' is required in the decoder config for VP9.");let s=t.codec.split("."),r=Number(s[1]),a=Number(s[2]),u=(Number(s[3])<<4)+(0<<1)+Number(t.colorSpace.fullRange);return w("vpcC",1,0,[y(r),y(a),y(u),y(2),y(2),y(2),c(0)])},Nt=()=>{let s=(1<<7)+1;return v("av1C",[s,0,0,0])},Rt=(e,t)=>v(e,[Array(6).fill(0),c(1),c(0),c(0),n(0),c(t.info.numberOfChannels),c(16),c(0),c(0),A(t.info.sampleRate)],[oi[t.info.codec](t)]),Pt=e=>{let t=new Uint8Array(e.info.decoderConfig.description);return w("esds",0,0,[n(58753152),y(32+t.byteLength),c(1),y(0),n(75530368),y(18+t.byteLength),y(64),y(21),Pe(0),n(130071),n(130071),n(92307584),y(t.byteLength),...t,n(109084800),y(1),y(2)])},Lt=e=>{let t=3840,s=0;const r=e.info.decoderConfig?.description;if(r){if(r.byteLength<18)throw new TypeError("Invalid decoder description provided for Opus; must be at least 18 bytes long.");const a=ArrayBuffer.isView(r)?new DataView(r.buffer,r.byteOffset,r.byteLength):new DataView(r);t=a.getUint16(10,!0),s=a.getInt16(14,!0)}return v("dOps",[y(0),y(e.info.numberOfChannels),c(t),n(e.info.sampleRate),ge(s),y(0)])},Vt=e=>w("stts",0,0,[n(e.timeToSampleTable.length),e.timeToSampleTable.map(t=>[n(t.sampleCount),n(t.sampleDelta)])]),jt=e=>{if(e.samples.every(s=>s.type==="key"))return null;let t=[...e.samples.entries()].filter(([,s])=>s.type==="key");return w("stss",0,0,[n(t.length),t.map(([s])=>n(s+1))])},$t=e=>w("stsc",0,0,[n(e.compactlyCodedChunkTable.length),e.compactlyCodedChunkTable.map(t=>[n(t.firstChunk),n(t.samplesPerChunk),n(1)])]),Ht=e=>w("stsz",0,0,[n(0),n(e.samples.length),e.samples.map(t=>n(t.size))]),qt=e=>e.finalizedChunks.length>0&&se(e.finalizedChunks).offset>=2**32?w("co64",0,0,[n(e.finalizedChunks.length),e.finalizedChunks.map(t=>x(t.offset))]):w("stco",0,0,[n(e.finalizedChunks.length),e.finalizedChunks.map(t=>n(t.offset))]),Xt=e=>w("ctts",0,0,[n(e.compositionTimeOffsetTable.length),e.compositionTimeOffsetTable.map(t=>[n(t.sampleCount),n(t.sampleCompositionTimeOffset)])]),Gt=e=>v("mvex",null,e.map(Zt)),Zt=e=>w("trex",0,0,[n(e.id),n(1),n(0),n(0),n(0)]),$e=(e,t)=>v("moof",null,[Kt(e),...t.map(Qt)]),Kt=e=>w("mfhd",0,0,[n(e)]),He=e=>{let t=0,s=0,r=0,a=0,o=e.type==="delta";return s|=+o,o?t|=1:t|=2,t<<24|s<<16|r<<8|a},Qt=e=>v("traf",null,[Jt(e),Yt(e),ei(e)]),Jt=e=>{let t=0;t|=8,t|=16,t|=32,t|=131072;let s=e.currentChunk.samples[1]??e.currentChunk.samples[0],r={duration:s.timescaleUnitsToNextSample,size:s.size,flags:He(s)};return w("tfhd",0,t,[n(e.id),n(r.duration),n(r.size),n(r.flags)])},Yt=e=>w("tfdt",1,0,[x(O(e.currentChunk.startTimestamp,e.timescale))]),ei=e=>{let t=e.currentChunk.samples.map(D=>D.timescaleUnitsToNextSample),s=e.currentChunk.samples.map(D=>D.size),r=e.currentChunk.samples.map(He),a=e.currentChunk.samples.map(D=>O(D.presentationTimestamp-D.decodeTimestamp,e.timescale)),o=new Set(t),l=new Set(s),u=new Set(r),g=new Set(a),b=u.size===2&&r[0]!==r[1],U=o.size>1,ie=l.size>1,st=!b&&u.size>1,rt=g.size>1||[...g].some(D=>D!==0),L=0;return L|=1,L|=4*+b,L|=256*+U,L|=512*+ie,L|=1024*+st,L|=2048*+rt,w("trun",1,L,[n(e.currentChunk.samples.length),n(e.currentChunk.offset-e.currentChunk.moofOffset||0),b?n(r[0]):[],e.currentChunk.samples.map((D,ce)=>[U?n(t[ce]):[],ie?n(s[ce]):[],st?n(r[ce]):[],rt?mt(a[ce]):[]])])},ti=e=>v("mfra",null,[...e.map(ii),si()]),ii=(e,t)=>w("tfra",1,0,[n(e.id),n(63),n(e.finalizedChunks.length),e.finalizedChunks.map(r=>[x(O(r.startTimestamp,e.timescale)),x(r.moofOffset),n(t+1),n(1),n(1)])]),si=()=>w("mfro",0,0,[n(0)]),ri={avc:"avc1",hevc:"hvc1",vp9:"vp09",av1:"av01"},ai={avc:xt,hevc:Wt,vp9:Ft,av1:Nt},ni={aac:"mp4a",opus:"Opus"},oi={aac:Pt,opus:Lt},hi=Symbol("isTarget"),ae=class{},qe=class extends ae{constructor(){super(...arguments),this.buffer=null}},Te=class extends ae{constructor(e){if(super(),this.options=e,typeof e!="object")throw new TypeError("StreamTarget requires an options object to be passed to its constructor.");if(e.onData){if(typeof e.onData!="function")throw new TypeError("options.onData, when provided, must be a function.");if(e.onData.length<2)throw new TypeError("options.onData, when provided, must be a function that takes in at least two arguments (data and position). Ignoring the position argument, which specifies the byte offset at which the data is to be written, can lead to broken outputs.")}if(e.chunked!==void 0&&typeof e.chunked!="boolean")throw new TypeError("options.chunked, when provided, must be a boolean.");if(e.chunkSize!==void 0&&(!Number.isInteger(e.chunkSize)||e.chunkSize<1024))throw new TypeError("options.chunkSize, when provided, must be an integer and not smaller than 1024.")}},Xe=class extends ae{constructor(e,t){if(super(),this.stream=e,this.options=t,!(e instanceof FileSystemWritableFileStream))throw new TypeError("FileSystemWritableFileStreamTarget requires a FileSystemWritableFileStream instance.");if(t!==void 0&&typeof t!="object")throw new TypeError("FileSystemWritableFileStreamTarget's options, when provided, must be an object.");if(t&&t.chunkSize!==void 0&&(!Number.isInteger(t.chunkSize)||t.chunkSize<=0))throw new TypeError("options.chunkSize, when provided, must be a positive integer")}},W,j,Ge=class{constructor(){this.pos=0,d(this,W,new Uint8Array(8)),d(this,j,new DataView(i(this,W).buffer)),this.offsets=new WeakMap}seek(e){this.pos=e}writeU32(e){i(this,j).setUint32(0,e,!1),this.write(i(this,W).subarray(0,4))}writeU64(e){i(this,j).setUint32(0,Math.floor(e/2**32),!1),i(this,j).setUint32(4,e,!1),this.write(i(this,W).subarray(0,8))}writeAscii(e){for(let t=0;t<e.length;t++)i(this,j).setUint8(t%8,e.charCodeAt(t)),t%8===7&&this.write(i(this,W));e.length%8!==0&&this.write(i(this,W).subarray(0,e.length%8))}writeBox(e){if(this.offsets.set(e,this.pos),e.contents&&!e.children)this.writeBoxHeader(e,e.size??e.contents.byteLength+8),this.write(e.contents);else{let t=this.pos;if(this.writeBoxHeader(e,0),e.contents&&this.write(e.contents),e.children)for(let a of e.children)a&&this.writeBox(a);let s=this.pos,r=e.size??s-t;this.seek(t),this.writeBoxHeader(e,r),this.seek(s)}}writeBoxHeader(e,t){this.writeU32(e.largeSize?1:t),this.writeAscii(e.type),e.largeSize&&this.writeU64(t)}measureBoxHeader(e){return 8+(e.largeSize?8:0)}patchBox(e){let t=this.pos;this.seek(this.offsets.get(e)),this.writeBox(e),this.seek(t)}measureBox(e){if(e.contents&&!e.children)return this.measureBoxHeader(e)+e.contents.byteLength;{let t=this.measureBoxHeader(e);if(e.contents&&(t+=e.contents.byteLength),e.children)for(let s of e.children)s&&(t+=this.measureBox(s));return t}}};W=new WeakMap,j=new WeakMap;var ne,F,G,Z,oe,be,li=class extends Ge{constructor(e){super(),d(this,oe),d(this,ne,void 0),d(this,F,new ArrayBuffer(2**16)),d(this,G,new Uint8Array(i(this,F))),d(this,Z,0),C(this,ne,e)}write(e){m(this,oe,be).call(this,this.pos+e.byteLength),i(this,G).set(e,this.pos),this.pos+=e.byteLength,C(this,Z,Math.max(i(this,Z),this.pos))}finalize(){m(this,oe,be).call(this,this.pos),i(this,ne).buffer=i(this,F).slice(0,Math.max(i(this,Z),this.pos))}};ne=new WeakMap,F=new WeakMap,G=new WeakMap,Z=new WeakMap,oe=new WeakSet,be=function(e){let t=i(this,F).byteLength;for(;t<e;)t*=2;if(t===i(this,F).byteLength)return;let s=new ArrayBuffer(t),r=new Uint8Array(s);r.set(i(this,G),0),C(this,F,s),C(this,G,r)};var fi=2**24,ui=2,K,N,Q,B,_,he,_e,ke,Ze,Ee,Ke,J,le,ze=class extends Ge{constructor(e){super(),d(this,he),d(this,ke),d(this,Ee),d(this,J),d(this,K,void 0),d(this,N,[]),d(this,Q,void 0),d(this,B,void 0),d(this,_,[]),C(this,K,e),C(this,Q,e.options?.chunked??!1),C(this,B,e.options?.chunkSize??fi)}write(e){i(this,N).push({data:e.slice(),start:this.pos}),this.pos+=e.byteLength}flush(){if(i(this,N).length===0)return;let e=[],t=[...i(this,N)].sort((s,r)=>s.start-r.start);e.push({start:t[0].start,size:t[0].data.byteLength});for(let s=1;s<t.length;s++){let r=e[e.length-1],a=t[s];a.start<=r.start+r.size?r.size=Math.max(r.size,a.start+a.data.byteLength-r.start):e.push({start:a.start,size:a.data.byteLength})}for(let s of e){s.data=new Uint8Array(s.size);for(let r of i(this,N))s.start<=r.start&&r.start<s.start+s.size&&s.data.set(r.data,r.start-s.start);i(this,Q)?(m(this,he,_e).call(this,s.data,s.start),m(this,J,le).call(this)):i(this,K).options.onData?.(s.data,s.start)}i(this,N).length=0}finalize(){i(this,Q)&&m(this,J,le).call(this,!0)}};K=new WeakMap,N=new WeakMap,Q=new WeakMap,B=new WeakMap,_=new WeakMap,he=new WeakSet,_e=function(e,t){let s=i(this,_).findIndex(u=>u.start<=t&&t<u.start+i(this,B));s===-1&&(s=m(this,Ee,Ke).call(this,t));let r=i(this,_)[s],a=t-r.start,o=e.subarray(0,Math.min(i(this,B)-a,e.byteLength));r.data.set(o,a);let l={start:a,end:a+o.byteLength};if(m(this,ke,Ze).call(this,r,l),r.written[0].start===0&&r.written[0].end===i(this,B)&&(r.shouldFlush=!0),i(this,_).length>ui){for(let u=0;u<i(this,_).length-1;u++)i(this,_)[u].shouldFlush=!0;m(this,J,le).call(this)}o.byteLength<e.byteLength&&m(this,he,_e).call(this,e.subarray(o.byteLength),t+o.byteLength)},ke=new WeakSet,Ze=function(e,t){let s=0,r=e.written.length-1,a=-1;for(;s<=r;){let o=Math.floor(s+(r-s+1)/2);e.written[o].start<=t.start?(s=o+1,a=o):r=o-1}for(e.written.splice(a+1,0,t),(a===-1||e.written[a].end<t.start)&&a++;a<e.written.length-1&&e.written[a].end>=e.written[a+1].start;)e.written[a].end=Math.max(e.written[a].end,e.written[a+1].end),e.written.splice(a+1,1)},Ee=new WeakSet,Ke=function(e){let s={start:Math.floor(e/i(this,B))*i(this,B),data:new Uint8Array(i(this,B)),written:[],shouldFlush:!1};return i(this,_).push(s),i(this,_).sort((r,a)=>r.start-a.start),i(this,_).indexOf(s)},J=new WeakSet,le=function(e=!1){for(let t=0;t<i(this,_).length;t++){let s=i(this,_)[t];if(!(!s.shouldFlush&&!e)){for(let r of s.written)i(this,K).options.onData?.(s.data.subarray(r.start,r.end),s.start+r.start);i(this,_).splice(t--,1)}}};var di=class extends ze{constructor(e){super(new Te({onData:(t,s)=>e.stream.write({type:"write",data:t,position:s}),chunked:!0,chunkSize:e.options?.chunkSize}))}},Ae=1e3,mi=["avc","hevc","vp9","av1"],pi=["aac","opus"],ci=2082844800,wi=["strict","offset","cross-track-offset"],h,f,fe,k,T,S,$,H,Oe,R,P,Y,Me,Qe,Be,Je,Ie,Ye,De,et,Ue,tt,ue,xe,M,I,We,it,ee,de,me,Fe,q,te,pe,Ne,vi=class{constructor(e){if(d(this,Me),d(this,Be),d(this,Ie),d(this,De),d(this,Ue),d(this,ue),d(this,M),d(this,We),d(this,ee),d(this,me),d(this,q),d(this,pe),d(this,h,void 0),d(this,f,void 0),d(this,fe,void 0),d(this,k,void 0),d(this,T,null),d(this,S,null),d(this,$,Math.floor(Date.now()/1e3)+ci),d(this,H,[]),d(this,Oe,1),d(this,R,[]),d(this,P,[]),d(this,Y,!1),m(this,Me,Qe).call(this,e),e.video=X(e.video),e.audio=X(e.audio),e.fastStart=X(e.fastStart),this.target=e.target,C(this,h,{firstTimestampBehavior:"strict",...e}),e.target instanceof qe)C(this,f,new li(e.target));else if(e.target instanceof Te)C(this,f,new ze(e.target));else if(e.target instanceof Xe)C(this,f,new di(e.target));else throw new Error(`Invalid target: ${e.target}`);m(this,De,et).call(this),m(this,Be,Je).call(this)}addVideoChunk(e,t,s,r){if(!(e instanceof EncodedVideoChunk))throw new TypeError("addVideoChunk's first argument (sample) must be of type EncodedVideoChunk.");if(t&&typeof t!="object")throw new TypeError("addVideoChunk's second argument (meta), when provided, must be an object.");if(s!==void 0&&(!Number.isFinite(s)||s<0))throw new TypeError("addVideoChunk's third argument (timestamp), when provided, must be a non-negative real number.");if(r!==void 0&&!Number.isFinite(r))throw new TypeError("addVideoChunk's fourth argument (compositionTimeOffset), when provided, must be a real number.");let a=new Uint8Array(e.byteLength);e.copyTo(a),this.addVideoChunkRaw(a,e.type,s??e.timestamp,e.duration,t,r)}addVideoChunkRaw(e,t,s,r,a,o){if(!(e instanceof Uint8Array))throw new TypeError("addVideoChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addVideoChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(s)||s<0)throw new TypeError("addVideoChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(r)||r<0)throw new TypeError("addVideoChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addVideoChunkRaw's fifth argument (meta), when provided, must be an object.");if(o!==void 0&&!Number.isFinite(o))throw new TypeError("addVideoChunkRaw's sixth argument (compositionTimeOffset), when provided, must be a real number.");if(m(this,pe,Ne).call(this),!i(this,h).video)throw new Error("No video track declared.");if(typeof i(this,h).fastStart=="object"&&i(this,T).samples.length===i(this,h).fastStart.expectedVideoChunks)throw new Error(`Cannot add more video chunks than specified in 'fastStart' (${i(this,h).fastStart.expectedVideoChunks}).`);let l=m(this,ue,xe).call(this,i(this,T),e,t,s,r,a,o);if(i(this,h).fastStart==="fragmented"&&i(this,S)){for(;i(this,P).length>0&&i(this,P)[0].decodeTimestamp<=l.decodeTimestamp;){let u=i(this,P).shift();m(this,M,I).call(this,i(this,S),u)}l.decodeTimestamp<=i(this,S).lastDecodeTimestamp?m(this,M,I).call(this,i(this,T),l):i(this,R).push(l)}else m(this,M,I).call(this,i(this,T),l)}addAudioChunk(e,t,s){if(!(e instanceof EncodedAudioChunk))throw new TypeError("addAudioChunk's first argument (sample) must be of type EncodedAudioChunk.");if(t&&typeof t!="object")throw new TypeError("addAudioChunk's second argument (meta), when provided, must be an object.");if(s!==void 0&&(!Number.isFinite(s)||s<0))throw new TypeError("addAudioChunk's third argument (timestamp), when provided, must be a non-negative real number.");let r=new Uint8Array(e.byteLength);e.copyTo(r),this.addAudioChunkRaw(r,e.type,s??e.timestamp,e.duration,t)}addAudioChunkRaw(e,t,s,r,a){if(!(e instanceof Uint8Array))throw new TypeError("addAudioChunkRaw's first argument (data) must be an instance of Uint8Array.");if(t!=="key"&&t!=="delta")throw new TypeError("addAudioChunkRaw's second argument (type) must be either 'key' or 'delta'.");if(!Number.isFinite(s)||s<0)throw new TypeError("addAudioChunkRaw's third argument (timestamp) must be a non-negative real number.");if(!Number.isFinite(r)||r<0)throw new TypeError("addAudioChunkRaw's fourth argument (duration) must be a non-negative real number.");if(a&&typeof a!="object")throw new TypeError("addAudioChunkRaw's fifth argument (meta), when provided, must be an object.");if(m(this,pe,Ne).call(this),!i(this,h).audio)throw new Error("No audio track declared.");if(typeof i(this,h).fastStart=="object"&&i(this,S).samples.length===i(this,h).fastStart.expectedAudioChunks)throw new Error(`Cannot add more audio chunks than specified in 'fastStart' (${i(this,h).fastStart.expectedAudioChunks}).`);let o=m(this,ue,xe).call(this,i(this,S),e,t,s,r,a);if(i(this,h).fastStart==="fragmented"&&i(this,T)){for(;i(this,R).length>0&&i(this,R)[0].decodeTimestamp<=o.decodeTimestamp;){let l=i(this,R).shift();m(this,M,I).call(this,i(this,T),l)}o.decodeTimestamp<=i(this,T).lastDecodeTimestamp?m(this,M,I).call(this,i(this,S),o):i(this,P).push(o)}else m(this,M,I).call(this,i(this,S),o)}finalize(){if(i(this,Y))throw new Error("Cannot finalize a muxer more than once.");if(i(this,h).fastStart==="fragmented"){for(let t of i(this,R))m(this,M,I).call(this,i(this,T),t);for(let t of i(this,P))m(this,M,I).call(this,i(this,S),t);m(this,me,Fe).call(this,!1)}else i(this,T)&&m(this,ee,de).call(this,i(this,T)),i(this,S)&&m(this,ee,de).call(this,i(this,S));let e=[i(this,T),i(this,S)].filter(Boolean);if(i(this,h).fastStart==="in-memory"){let t;for(let r=0;r<2;r++){let a=re(e,i(this,$)),o=i(this,f).measureBox(a);t=i(this,f).measureBox(i(this,k));let l=i(this,f).pos+o+t;for(let u of i(this,H)){u.offset=l;for(let{data:g}of u.samples)l+=g.byteLength,t+=g.byteLength}if(l<2**32)break;t>=2**32&&(i(this,k).largeSize=!0)}let s=re(e,i(this,$));i(this,f).writeBox(s),i(this,k).size=t,i(this,f).writeBox(i(this,k));for(let r of i(this,H))for(let a of r.samples)i(this,f).write(a.data),a.data=null}else if(i(this,h).fastStart==="fragmented"){let t=i(this,f).pos,s=ti(e);i(this,f).writeBox(s);let r=i(this,f).pos-t;i(this,f).seek(i(this,f).pos-4),i(this,f).writeU32(r)}else{let t=i(this,f).offsets.get(i(this,k)),s=i(this,f).pos-t;i(this,k).size=s,i(this,k).largeSize=s>=2**32,i(this,f).patchBox(i(this,k));let r=re(e,i(this,$));if(typeof i(this,h).fastStart=="object"){i(this,f).seek(i(this,fe)),i(this,f).writeBox(r);let a=t-i(this,f).pos;i(this,f).writeBox(ct(a))}else i(this,f).writeBox(r)}m(this,q,te).call(this),i(this,f).finalize(),C(this,Y,!0)}};return h=new WeakMap,f=new WeakMap,fe=new WeakMap,k=new WeakMap,T=new WeakMap,S=new WeakMap,$=new WeakMap,H=new WeakMap,Oe=new WeakMap,R=new WeakMap,P=new WeakMap,Y=new WeakMap,Me=new WeakSet,Qe=function(e){if(typeof e!="object")throw new TypeError("The muxer requires an options object to be passed to its constructor.");if(!(e.target instanceof ae))throw new TypeError("The target must be provided and an instance of Target.");if(e.video){if(!mi.includes(e.video.codec))throw new TypeError(`Unsupported video codec: ${e.video.codec}`);if(!Number.isInteger(e.video.width)||e.video.width<=0)throw new TypeError(`Invalid video width: ${e.video.width}. Must be a positive integer.`);if(!Number.isInteger(e.video.height)||e.video.height<=0)throw new TypeError(`Invalid video height: ${e.video.height}. Must be a positive integer.`);const t=e.video.rotation;if(typeof t=="number"&&![0,90,180,270].includes(t))throw new TypeError(`Invalid video rotation: ${t}. Has to be 0, 90, 180 or 270.`);if(Array.isArray(t)&&(t.length!==9||t.some(s=>typeof s!="number")))throw new TypeError(`Invalid video transformation matrix: ${t.join()}`);if(e.video.frameRate!==void 0&&(!Number.isInteger(e.video.frameRate)||e.video.frameRate<=0))throw new TypeError(`Invalid video frame rate: ${e.video.frameRate}. Must be a positive integer.`)}if(e.audio){if(!pi.includes(e.audio.codec))throw new TypeError(`Unsupported audio codec: ${e.audio.codec}`);if(!Number.isInteger(e.audio.numberOfChannels)||e.audio.numberOfChannels<=0)throw new TypeError(`Invalid number of audio channels: ${e.audio.numberOfChannels}. Must be a positive integer.`);if(!Number.isInteger(e.audio.sampleRate)||e.audio.sampleRate<=0)throw new TypeError(`Invalid audio sample rate: ${e.audio.sampleRate}. Must be a positive integer.`)}if(e.firstTimestampBehavior&&!wi.includes(e.firstTimestampBehavior))throw new TypeError(`Invalid first timestamp behavior: ${e.firstTimestampBehavior}`);if(typeof e.fastStart=="object"){if(e.video){if(e.fastStart.expectedVideoChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedVideoChunks'.");if(!Number.isInteger(e.fastStart.expectedVideoChunks)||e.fastStart.expectedVideoChunks<0)throw new TypeError("'expectedVideoChunks' must be a non-negative integer.")}if(e.audio){if(e.fastStart.expectedAudioChunks===void 0)throw new TypeError("'fastStart' is an object but is missing property 'expectedAudioChunks'.");if(!Number.isInteger(e.fastStart.expectedAudioChunks)||e.fastStart.expectedAudioChunks<0)throw new TypeError("'expectedAudioChunks' must be a non-negative integer.")}}else if(![!1,"in-memory","fragmented"].includes(e.fastStart))throw new TypeError("'fastStart' option must be false, 'in-memory', 'fragmented' or an object.");if(e.minFragmentDuration!==void 0&&(!Number.isFinite(e.minFragmentDuration)||e.minFragmentDuration<0))throw new TypeError("'minFragmentDuration' must be a non-negative number.")},Be=new WeakSet,Je=function(){if(i(this,f).writeBox(pt({holdsAvc:i(this,h).video?.codec==="avc",fragmented:i(this,h).fastStart==="fragmented"})),C(this,fe,i(this,f).pos),i(this,h).fastStart==="in-memory")C(this,k,Se(!1));else if(i(this,h).fastStart!=="fragmented"){if(typeof i(this,h).fastStart=="object"){let e=m(this,Ie,Ye).call(this);i(this,f).seek(i(this,f).pos+e)}C(this,k,Se(!0)),i(this,f).writeBox(i(this,k))}m(this,q,te).call(this)},Ie=new WeakSet,Ye=function(){if(typeof i(this,h).fastStart!="object")return;let e=0,t=[i(this,h).fastStart.expectedVideoChunks,i(this,h).fastStart.expectedAudioChunks];for(let s of t)s&&(e+=8*Math.ceil(.6666666666666666*s),e+=4*s,e+=12*Math.ceil(.6666666666666666*s),e+=4*s,e+=8*s);return e+=4096,e},De=new WeakSet,et=function(){if(i(this,h).video&&C(this,T,{id:1,info:{type:"video",codec:i(this,h).video.codec,width:i(this,h).video.width,height:i(this,h).video.height,rotation:i(this,h).video.rotation??0,decoderConfig:null},timescale:i(this,h).video.frameRate??57600,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,h).audio&&(C(this,S,{id:i(this,h).video?2:1,info:{type:"audio",codec:i(this,h).audio.codec,numberOfChannels:i(this,h).audio.numberOfChannels,sampleRate:i(this,h).audio.sampleRate,decoderConfig:null},timescale:i(this,h).audio.sampleRate,samples:[],finalizedChunks:[],currentChunk:null,firstDecodeTimestamp:void 0,lastDecodeTimestamp:-1,timeToSampleTable:[],compositionTimeOffsetTable:[],lastTimescaleUnits:null,lastSample:null,compactlyCodedChunkTable:[]}),i(this,h).audio.codec==="aac")){let e=m(this,Ue,tt).call(this,2,i(this,h).audio.sampleRate,i(this,h).audio.numberOfChannels);i(this,S).info.decoderConfig={codec:i(this,h).audio.codec,description:e,numberOfChannels:i(this,h).audio.numberOfChannels,sampleRate:i(this,h).audio.sampleRate}}},Ue=new WeakSet,tt=function(e,t,s){let a=[96e3,88200,64e3,48e3,44100,32e3,24e3,22050,16e3,12e3,11025,8e3,7350].indexOf(t),o=s,l="";l+=e.toString(2).padStart(5,"0"),l+=a.toString(2).padStart(4,"0"),a===15&&(l+=t.toString(2).padStart(24,"0")),l+=o.toString(2).padStart(4,"0");let u=Math.ceil(l.length/8)*8;l=l.padEnd(u,"0");let g=new Uint8Array(l.length/8);for(let b=0;b<l.length;b+=8)g[b/8]=parseInt(l.slice(b,b+8),2);return g},ue=new WeakSet,xe=function(e,t,s,r,a,o,l){let u=r/1e6,g=(r-(l??0))/1e6,b=a/1e6,U=m(this,We,it).call(this,u,g,e);return u=U.presentationTimestamp,g=U.decodeTimestamp,o?.decoderConfig&&(e.info.decoderConfig===null?e.info.decoderConfig=o.decoderConfig:Object.assign(e.info.decoderConfig,o.decoderConfig)),{presentationTimestamp:u,decodeTimestamp:g,duration:b,data:t,size:t.byteLength,type:s,timescaleUnitsToNextSample:O(b,e.timescale)}},M=new WeakSet,I=function(e,t){i(this,h).fastStart!=="fragmented"&&e.samples.push(t);const s=O(t.presentationTimestamp-t.decodeTimestamp,e.timescale);if(e.lastTimescaleUnits!==null){let a=O(t.decodeTimestamp,e.timescale,!1),o=Math.round(a-e.lastTimescaleUnits);if(e.lastTimescaleUnits+=o,e.lastSample.timescaleUnitsToNextSample=o,i(this,h).fastStart!=="fragmented"){let l=se(e.timeToSampleTable);l.sampleCount===1?(l.sampleDelta=o,l.sampleCount++):l.sampleDelta===o?l.sampleCount++:(l.sampleCount--,e.timeToSampleTable.push({sampleCount:2,sampleDelta:o}));const u=se(e.compositionTimeOffsetTable);u.sampleCompositionTimeOffset===s?u.sampleCount++:e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:s})}}else e.lastTimescaleUnits=0,i(this,h).fastStart!=="fragmented"&&(e.timeToSampleTable.push({sampleCount:1,sampleDelta:O(t.duration,e.timescale)}),e.compositionTimeOffsetTable.push({sampleCount:1,sampleCompositionTimeOffset:s}));e.lastSample=t;let r=!1;if(!e.currentChunk)r=!0;else{let a=t.presentationTimestamp-e.currentChunk.startTimestamp;if(i(this,h).fastStart==="fragmented"){let o=i(this,T)??i(this,S);const l=i(this,h).minFragmentDuration??1;e===o&&t.type==="key"&&a>=l&&(r=!0,m(this,me,Fe).call(this))}else r=a>=.5}r&&(e.currentChunk&&m(this,ee,de).call(this,e),e.currentChunk={startTimestamp:t.presentationTimestamp,samples:[]}),e.currentChunk.samples.push(t)},We=new WeakSet,it=function(e,t,s){const r=i(this,h).firstTimestampBehavior==="strict",a=s.lastDecodeTimestamp===-1;if(r&&a&&t!==0)throw new Error(`The first chunk for your media track must have a timestamp of 0 (received DTS=${t}).Non-zero first timestamps are often caused by directly piping frames or audio data from a MediaStreamTrack into the encoder. Their timestamps are typically relative to the age of thedocument, which is probably what you want.
+
+If you want to offset all timestamps of a track such that the first one is zero, set firstTimestampBehavior: 'offset' in the options.
+`);if(i(this,h).firstTimestampBehavior==="offset"||i(this,h).firstTimestampBehavior==="cross-track-offset"){s.firstDecodeTimestamp===void 0&&(s.firstDecodeTimestamp=t);let l;i(this,h).firstTimestampBehavior==="offset"?l=s.firstDecodeTimestamp:l=Math.min(i(this,T)?.firstDecodeTimestamp??1/0,i(this,S)?.firstDecodeTimestamp??1/0),t-=l,e-=l}if(t<s.lastDecodeTimestamp)throw new Error(`Timestamps must be monotonically increasing (DTS went from ${s.lastDecodeTimestamp*1e6} to ${t*1e6}).`);return s.lastDecodeTimestamp=t,{presentationTimestamp:e,decodeTimestamp:t}},ee=new WeakSet,de=function(e){if(i(this,h).fastStart==="fragmented")throw new Error("Can't finalize individual chunks if 'fastStart' is set to 'fragmented'.");if(e.currentChunk){if(e.finalizedChunks.push(e.currentChunk),i(this,H).push(e.currentChunk),(e.compactlyCodedChunkTable.length===0||se(e.compactlyCodedChunkTable).samplesPerChunk!==e.currentChunk.samples.length)&&e.compactlyCodedChunkTable.push({firstChunk:e.finalizedChunks.length,samplesPerChunk:e.currentChunk.samples.length}),i(this,h).fastStart==="in-memory"){e.currentChunk.offset=0;return}e.currentChunk.offset=i(this,f).pos;for(let t of e.currentChunk.samples)i(this,f).write(t.data),t.data=null;m(this,q,te).call(this)}},me=new WeakSet,Fe=function(e=!0){if(i(this,h).fastStart!=="fragmented")throw new Error("Can't finalize a fragment unless 'fastStart' is set to 'fragmented'.");let t=[i(this,T),i(this,S)].filter(u=>u&&u.currentChunk);if(t.length===0)return;let s=ut(this,Oe)._++;if(s===1){let u=re(t,i(this,$),!0);i(this,f).writeBox(u)}let r=i(this,f).pos,a=$e(s,t);i(this,f).writeBox(a);{let u=Se(!1),g=0;for(let U of t)for(let ie of U.currentChunk.samples)g+=ie.size;let b=i(this,f).measureBox(u)+g;b>=4294967296&&(u.largeSize=!0,b=i(this,f).measureBox(u)+g),u.size=b,i(this,f).writeBox(u)}for(let u of t){u.currentChunk.offset=i(this,f).pos,u.currentChunk.moofOffset=r;for(let g of u.currentChunk.samples)i(this,f).write(g.data),g.data=null}let o=i(this,f).pos;i(this,f).seek(i(this,f).offsets.get(a));let l=$e(s,t);i(this,f).writeBox(l),i(this,f).seek(o);for(let u of t)u.finalizedChunks.push(u.currentChunk),i(this,H).push(u.currentChunk),u.currentChunk=null;e&&m(this,q,te).call(this)},q=new WeakSet,te=function(){i(this,f)instanceof ze&&i(this,f).flush()},pe=new WeakSet,Ne=function(){if(i(this,Y))throw new Error("Cannot add new video or audio chunks after the file has been finalized.")},ft(Re)})();typeof module=="object"&&typeof module.exports=="object"&&Object.assign(module.exports,Mp4Muxer);
+
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const PRE={'1080 × 1080':[1080,1080],'1920 × 1080':[1920,1080],'1080 × 1920':[1080,1920],'2048 × 2048':[2048,2048],'A4 300dpi · 2480 × 3508':[2480,3508],'Custom':null};
+const SEC=[
+['Format (px)',0,null,[['Preset','pre','select','1080 × 1080',Object.keys(PRE)],['Width','w','number',1080,16,4096],['Height','h','number',1080,16,4096],['Background','bgon','check',true],['Bg color','bg','color','#f2f2ee']]],
+['Brush',1,null,[['Style','bst','select','Classic',['Classic','Star','Square','Calligraphic','Swell']],['Color','col','color','#ff3b00'],['Size','size','range',70,1,400],['Hardness','hard','range',80,0,100],['Eraser','erase','check',false]]],
+['Mirror',1,null,[['Mirror','mir','check',false],['Direction','mdir','select','Horizontal ↔',['Horizontal ↔','Vertical ↕','Both ✛']]]],
+['Layers',1,'LY',[]],
+['Bevel & Emboss',1,'bev',[['Type','btype','select','Inner Bevel',['Inner Bevel','Pillow']],['Direction','bdir','select','Up',['Up','Down']],['Depth','bdepth','range',100,1,300],['Size','bsize','range',14,1,80],['Angle','bang','range',120,0,360],['Altitude','balt','range',30,1,89],['Highlight','bhc','color','#ffffff'],['Hi opacity','bho','range',75,0,100],['Shadow','bsc','color','#000000'],['Sh opacity','bso','range',75,0,100]]],
+['Drop Shadow',1,'sh',[['Color','shc','color','#000000'],['Opacity','sho','range',55,0,100],['Angle','sha','range',120,0,360],['Distance','shd','range',24,0,200],['Blur','shb','range',30,0,200]]],
+['Export',0,null,[['Format','fmt','select','PNG',['PNG','JPG','PDF']]]]
+];
+const v={};const P=$('#p');
+const FX=['bevon','btype','bdir','bdepth','bsize','bang','balt','bhc','bho','bsc','bso','shon','shc','sho','sha','shd','shb','amv','acy','aam'];
+SEC.forEach(([t,open,k,rows])=>{
+  const d=document.createElement('details');d.open=!!open;
+  let h=`<summary>${t}${k&&k!='LY'?`<input type=checkbox data-id="${k}on" checked onclick="event.stopPropagation()">`:''}</summary><div class=b>`;
+  if(k=='LY')h+='<p style="color:var(--mut);margin:0 0 8px">Effects &amp; motion apply to the selected layer.</p><button id=al style="width:100%;margin-bottom:8px">+ Add layer</button><div id=ly></div>';
+  rows.forEach(([l,id,ty,df,a,b])=>{
+    if(ty=='range')h+=`<div class=r><label>${l}</label><input type=range data-id=${id} value=${df} min=${a} max=${b}><output></output></div>`;
+    else if(ty=='color')h+=`<div class=r><label>${l}</label><input type=color data-id=${id} value=${df}></div>`;
+    else if(ty=='check')h+=`<div class=r><label>${l}</label><input type=checkbox data-id=${id} ${df?'checked':''}></div>`;
+    else if(ty=='number')h+=`<div class=r><label>${l}</label><input type=number data-id=${id} value=${df} min=${a} max=${b}></div>`;
+    else h+=`<div class=r><label>${l}</label><select data-id=${id}>${a.map(o=>`<option ${o==df?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  });
+  if(t=='Format (px)')h+=`<div class=bt><button id=ap style="grid-column:1/3">Apply (clears canvas)</button></div>`;
+  if(t=='Export')h+=`<div class=bt><button id=ex style="grid-column:1/3">Export image</button></div>`;
+  d.innerHTML=h+'</div>';P.appendChild(d);
+});
+function read(e){const x=e.dataset.id;v[x]=e.type=='checkbox'?e.checked:e.type=='range'||e.type=='number'?+e.value:e.value;if(e.type=='range')e.nextElementSibling.value=e.value}
+document.querySelectorAll('[data-id]').forEach(read);
+
+const c=$('#c'),ctx=c.getContext('2d');
+const T=document.createElement('canvas'),tx=T.getContext('2d',{willReadFrequently:true});
+const M=document.createElement('canvas'),mx=M.getContext('2d'),M2=document.createElement('canvas'),m2=M2.getContext('2d');
+const snap=document.createElement('canvas'),sn=snap.getContext('2d');
+// layers
+let L=[],A=0,S,sx,SRC,tt=0,n=0,CW=1080,CH=1080;
+function mk(nm){const e=document.createElement('canvas');e.width=CW;e.height=CH;return{c:e,x:e.getContext('2d'),name:nm||'Layer '+(++n),vis:true,seed:Math.random()*1e9|0,fx:Object.fromEntries(FX.map(k=>[k,v[k]]))}}
+function load(f){FX.forEach(k=>{const e=document.querySelector(`[data-id=${k}]`);v[k]=f[k];if(e.type=='checkbox')e.checked=f[k];else e.value=f[k];if(e.type=='range')e.nextElementSibling.value=f[k]})}
+function sync(t){const k=t.dataset.id;if(FX.includes(k))L[A].fx[k]=v[k]}
+function sel(i){A=i;S=L[i].c;sx=L[i].x;load(L[i].fx);drawLy()}
+function drawLy(){
+  $('#ly').innerHTML=L.map((l,i)=>i).reverse().map(i=>`<div class="ly${i==A?' a':''}" data-i=${i}><span title="Double-click to rename">${esc(L[i].name)}</span><button data-a=r title=Rename>✎</button><button data-a=v>${L[i].vis?'on':'off'}</button><button data-a=u>↑</button><button data-a=d>↓</button>${L.length>1?'<button data-a=x>×</button>':''}</div>`).join('');
+}
+const esc=t=>t.replace(/[&<>"]/g,ch=>'&#'+ch.charCodeAt(0)+';');
+// undo / redo: each entry holds the layer list (names, visibility, effects) plus pixel copies of the layers that changed
+let U=[],RD=[];
+function cp(l){const e=document.createElement('canvas');e.width=l.c.width;e.height=l.c.height;e.getContext('2d').drawImage(l.c,0,0);return e}
+function snapState(pix){return{L:L.map(l=>({l,name:l.name,vis:l.vis,fx:{...l.fx}})),A,CW,CH,pix:new Map(pix.map(l=>[l,cp(l)]))}}
+function push(pix=[]){U.push(snapState(pix));if(U.length>30)U.shift();RD=[]}
+function restore(st){
+  if(st.CW!=CW||st.CH!=CH){CW=st.CW;CH=st.CH;c.width=T.width=CW;c.height=T.height=CH;fit()}
+  L=st.L.map(o=>{const l=o.l;l.name=o.name;l.vis=o.vis;l.fx={...o.fx};return l});
+  st.pix.forEach((e,l)=>{l.c.width=e.width;l.c.height=e.height;l.x.drawImage(e,0,0)});
+  sel(Math.min(st.A,L.length-1));draw();
+}
+function undo(redo){const a=redo?RD:U,b=redo?U:RD;if(!a.length)return;const st=a.pop();b.push(snapState([...st.pix.keys()]));restore(st)}
+addEventListener('keydown',e=>{
+  if(!(e.ctrlKey||e.metaKey)||e.altKey)return;const k=e.key.toLowerCase();
+  if(e.target.matches('input[type=text],input[type=number]'))return;
+  if(k=='z'){e.preventDefault();undo(e.shiftKey)}else if(k=='y'){e.preventDefault();undo(true)}
+});
+function rename(i){
+  const sp=$('#ly').querySelector(`[data-i="${i}"] span`);if(!sp)return;
+  const inp=document.createElement('input');inp.type='text';inp.value=L[i].name;inp.style.cssText='flex:1;color:inherit;background:transparent;border-bottom:1px solid currentColor';
+  sp.replaceWith(inp);inp.focus();inp.select();let done=false;
+  const fin=ok=>{if(done)return;done=true;const t=inp.value.trim();if(ok&&t&&t!=L[i].name){push();L[i].name=t}drawLy()};
+  inp.onkeydown=e=>{e.stopPropagation();if(e.key=='Enter')fin(true);else if(e.key=='Escape')fin(false)};
+  inp.onblur=()=>fin(true);inp.onclick=e=>e.stopPropagation();
+}
+let lc=[-1,0]; // manual double-click: the list re-renders on every click
+$('#al').onclick=()=>{push();L.splice(A+1,0,mk());sel(A+1);draw()};
+$('#ly').onclick=e=>{
+  const r=e.target.closest('.ly');if(!r)return;const i=+r.dataset.i,a=e.target.dataset.a;
+  if(!a){const now=performance.now(),dbl=lc[0]==i&&now-lc[1]<450;lc=dbl?[-1,0]:[i,now];if(dbl)return rename(i)}
+  if(a=='r'){if(i!=A)sel(i);return rename(i)}
+  if(a=='v'||a=='u'||a=='d'||a=='x')push();
+  if(a=='v')L[i].vis=!L[i].vis;
+  else if(a=='u'&&i<L.length-1){[L[i],L[i+1]]=[L[i+1],L[i]];return sel(i+1),draw()}
+  else if(a=='d'&&i>0){[L[i],L[i-1]]=[L[i-1],L[i]];return sel(i-1),draw()}
+  else if(a=='x'){L.splice(i,1);return sel(Math.min(A,L.length-1)),draw()}
+  sel(i);draw();
+};
+function resize(w,h){CW=w;CH=h;c.width=T.width=w;c.height=T.height=h;L.forEach(l=>{l.c.width=w;l.c.height=h});if(!L.length){L.push(mk());}sel(Math.min(A,L.length-1));fit();draw()}
+function fit(){const a=$('#area'),m=32,s=Math.min((a.clientWidth-m)/c.width,(a.clientHeight-m)/c.height,1);c.style.width=c.width*s+'px';c.style.height=c.height*s+'px';$('#info').textContent=c.width+' × '+c.height+' px'}
+addEventListener('resize',fit);
+
+const hx=h=>{const n=parseInt(h.slice(1),16);return[n>>16,n>>8&255,n&255]};
+const rgba=(h,a)=>{const[r,g,b]=hx(h);return`rgba(${r},${g},${b},${a})`};
+let q=0;function draw(){if(!q)q=requestAnimationFrame(()=>{q=0;render()})}
+
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function xform(src,p,k,m,l){
+  const W=c.width,H=c.height;
+  if(m=='Distortion'){
+    M.width=W;M.height=H;const N=14,AN=[[.12,.2],[.12,.5],[.12,.8],[.88,.2],[.88,.5],[.88,.8],[.5,.5]],am=.24*Math.min(W,H)*k,V=[];
+    AN.forEach((a,i)=>{const r=rng(l.seed+i*97),t1=r()*6.2832,t2=r()*6.2832,f1=r()*6.2832,f2=r()*6.2832,g=(i==6?.3:1)*(.6+.4*r()),s1=Math.sin(p+f1),s2=.5*Math.sin(2*p+f2);
+      V.push([g*am*(Math.cos(t1)*s1+Math.cos(t2)*s2),g*am*(Math.sin(t1)*s1+Math.sin(t2)*s2)])});
+    const P2=[];for(let gy=0;gy<=N;gy++)for(let gx=0;gx<=N;gx++){
+      const nx=gx/N,ny=gy/N;let dx=0,dy=0;
+      AN.forEach((a,i)=>{const w=Math.exp(-((nx-a[0])**2+(ny-a[1])**2)/.0968);dx+=w*V[i][0];dy+=w*V[i][1]});
+      P2.push([nx*W+dx,ny*H+dy,nx*W,ny*H])}
+    const tri=(a,b,c)=>{
+      const e1x=b[2]-a[2],e1y=b[3]-a[3],e2x=c[2]-a[2],e2y=c[3]-a[3],f1x=b[0]-a[0],f1y=b[1]-a[1],f2x=c[0]-a[0],f2y=c[1]-a[1],de=e1x*e2y-e2x*e1y;
+      if(!de)return;const A1=(f1x*e2y-f2x*e1y)/de,B=(f1y*e2y-f2y*e1y)/de,C=(f2x*e1x-f1x*e2x)/de,D=(f2y*e1x-f1y*e2x)/de;
+      const cx=(a[0]+b[0]+c[0])/3,cy=(a[1]+b[1]+c[1])/3,ex=p=>[p[0]+Math.sign(p[0]-cx)*.7,p[1]+Math.sign(p[1]-cy)*.7];
+      mx.save();mx.beginPath();[a,b,c].forEach((q,i)=>{const z=ex(q);i?mx.lineTo(z[0],z[1]):mx.moveTo(z[0],z[1])});mx.closePath();mx.clip();
+      mx.setTransform(A1,B,C,D,a[0]-A1*a[2]-C*a[3],a[1]-B*a[2]-D*a[3]);mx.drawImage(src,0,0);mx.restore()};
+    for(let gy=0;gy<N;gy++)for(let gx=0;gx<N;gx++){const i=gy*(N+1)+gx,a=P2[i],b=P2[i+1],c=P2[i+N+1],d=P2[i+N+2];tri(a,b,c);tri(b,d,c)}
+    return M;
+  }
+  if(m=='Glitch'){ // square grid, each cell jumps to a random offset and holds; shape only, colours untouched
+    M.width=W;M.height=H;
+    const G=16,cw=Math.ceil(W/G),chh=Math.ceil(H/G),fr=Math.floor(p/6.2832*24)|0,am=.09*Math.min(W,H)*k;
+    const hs=(a,b,cc)=>{let t=(l.seed^a*374761393^b*668265263^cc*2246822519)>>>0;t=Math.imul(t^t>>>13,1274126177)>>>0;return((t^t>>>16)>>>0)/4294967296};
+    for(let gy=0;gy<G;gy++)for(let gx=0;gx<G;gx++){
+      const sx0=gx*cw,sy0=gy*chh,w=Math.min(cw,W-sx0),h2=Math.min(chh,H-sy0);
+      if(w<=0||h2<=0)continue;
+      const on=hs(gx,gy,fr)<.1+.5*k; // only some cells glitch on a given step
+      const dx=on?Math.round((hs(gx,gy,fr+911)*2-1)*am):0,
+            dy=on?Math.round((hs(gx,gy,fr+577)*2-1)*am*.35):0;
+      mx.drawImage(src,sx0,sy0,w,h2,sx0+dx,sy0+dy,w,h2);
+    }
+    return M;
+  }
+  if(m=='Float'||m=='Breathe'){
+    M.width=W;M.height=H;mx.save();
+    if(m=='Float')mx.translate(0,Math.sin(p)*.05*H*k);
+    else{mx.translate(W/2,H/2);const z=1+.12*k*Math.sin(p);mx.scale(z,z);mx.translate(-W/2,-H/2)}
+    mx.drawImage(src,0,0);mx.restore();return M;
+  }
+  return src;
+}
+function render(){
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+  if(v.bgon){ctx.fillStyle=v.bg;ctx.fillRect(0,0,W,H)}
+  for(const l of L){
+    if(!l.vis)continue;Object.assign(v,l.fx);
+    const p=6.2832*v.acy*tt/v.adu,k=v.aam/100,m=v.amv;
+    if(m=='Rotating light')v.bang=(l.fx.bang+p*57.3)%360;
+    SRC=xform(l.c,p,k,m,l);
+    if(v.shon){ctx.save();const a=v.sha*Math.PI/180;ctx.shadowColor=rgba(v.shc,v.sho/100);ctx.shadowBlur=v.shb;ctx.shadowOffsetX=-Math.cos(a)*v.shd;ctx.shadowOffsetY=Math.sin(a)*v.shd;ctx.drawImage(SRC,0,0);ctx.restore()}
+    else ctx.drawImage(SRC,0,0);
+    if(v.bevon)bevel(W,H);
+  }
+  Object.assign(v,L[A].fx);
+}
+function smooth(h,W,H,r){ // separable running-sum box blur, run twice
+  let a=h,b=new Float32Array(W*H);
+  for(let pass=0;pass<2;pass++){
+    for(let y=0;y<H;y++){const o=y*W;let s=0;
+      for(let x=0;x<=r&&x<W;x++)s+=a[o+x];
+      for(let x=0;x<W;x++){b[o+x]=s/(Math.min(W-1,x+r)-Math.max(0,x-r)+1);
+        const ad=x+r+1,rm=x-r;if(ad<W)s+=a[o+ad];if(rm>=0)s-=a[o+rm]}}
+    for(let x=0;x<W;x++){let s=0;
+      for(let y=0;y<=r&&y<H;y++)s+=b[y*W+x];
+      for(let y=0;y<H;y++){a[y*W+x]=s/(Math.min(H-1,y+r)-Math.max(0,y-r)+1);
+        const ad=y+r+1,rm=y-r;if(ad<H)s+=b[ad*W+x];if(rm>=0)s-=b[rm*W+x]}}
+  }
+  return a;
+}
+function bevel(W,H){
+  const t=v.btype,sz=v.bsize*(t=='Pillow'?1.6:1);
+  tx.globalCompositeOperation='source-over';tx.clearRect(0,0,W,H);
+  tx.filter=`blur(${sz/2}px)`;tx.drawImage(SRC,0,0);tx.filter='none';
+  const im=tx.getImageData(0,0,W,H),d=im.data;let h=new Float32Array(W*H);
+  for(let i=0;i<h.length;i++)h[i]=d[i*4+3]/255;
+  // the blurred alpha is only 8-bit, so the raw height field is stepped; two float box passes
+  // remove that banding before the gradient is amplified by Depth
+  h=smooth(h,W,H,Math.max(1,Math.round(sz/6)));
+  const rr=Math.max(1,Math.round(sz/2.5)); // wide gradient: the slope is measured over the bevel, not over one pixel
+  const an=v.bang*Math.PI/180,al=v.balt*Math.PI/180,
+    L3=[Math.cos(an)*Math.cos(al),-Math.sin(an)*Math.cos(al),Math.sin(al)],
+    sg=(v.bdir=='Up'?1:-1)*(t=='Pillow'?-1:1),k=sg*v.bdepth*sz/14,
+    hc=hx(v.bhc),sc=hx(v.bsc),ho=v.bho/100,so=v.bso/100;
+  for(let y=0;y<H;y++){
+    const y0=Math.max(0,y-rr)*W,y1=Math.min(H-1,y+rr)*W,yr=(Math.min(H-1,y+rr)-Math.max(0,y-rr))||1;
+    for(let x=0;x<W;x++){
+      const xa=Math.max(0,x-rr),xb=Math.min(W-1,x+rr),xr=(xb-xa)||1,i=y*W+x,
+        nx=-(h[y*W+xb]-h[y*W+xa])/xr*k,ny=-(h[y1+x]-h[y0+x])/yr*k,
+        s=((nx*L3[0]+ny*L3[1]+L3[2])/Math.hypot(nx,ny,1)-L3[2])*2.2,
+        a=1-Math.exp(-1.5*Math.abs(s)), // soft roll-off instead of a hard clip, so steep slopes keep their shading
+        o=i*4,col=s>0?hc:sc;
+      d[o]=col[0];d[o+1]=col[1];d[o+2]=col[2];d[o+3]=a*(s>0?ho:so)*255;
+    }
+  }
+  tx.putImageData(im,0,0);tx.globalCompositeOperation='destination-in';tx.drawImage(SRC,0,0);
+  ctx.drawImage(T,0,0);
+}
+
+// brush
+let last=null,pts=null;
+function pos(e){const r=c.getBoundingClientRect();return[(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]}
+// mirror: repeat each stamp through reflection transforms (Horizontal = across the vertical centre axis)
+function stamp(x,y,r){
+  const MT=[[1,0,0,1,0,0]],d=v.mdir[0];
+  if(v.mir){if(d!='V')MT.push([-1,0,0,1,CW,0]);if(d!='H')MT.push([1,0,0,-1,0,CH]);if(d=='B')MT.push([-1,0,0,-1,CW,CH])}
+  for(const m of MT){sx.setTransform(...m);stamp1(x,y,r)}
+  sx.setTransform(1,0,0,1,0,0);
+}
+function updMir(){const d=v.mdir[0];$('#cw').className=v.mir?(d=='H'?'mh':d=='V'?'mv':'mh mv'):''}
+function stamp1(x,y,r){
+  const st=v.bst;sx.globalCompositeOperation=v.erase?'destination-out':'source-over';sx.fillStyle=v.col;
+  if(st=='Square')sx.fillRect(x-r,y-r,r*2,r*2);
+  else if(st=='Calligraphic'){sx.beginPath();sx.ellipse(x,y,r,r*.22,-.785,0,7);sx.fill()}
+  else if(st=='Star'){const k=r*.71,i=k*.237;sx.beginPath();sx.moveTo(x-k,y-k);sx.lineTo(x,y-i);sx.lineTo(x+k,y-k);sx.lineTo(x+i,y);sx.lineTo(x+k,y+k);sx.lineTo(x,y+i);sx.lineTo(x-k,y+k);sx.lineTo(x-i,y);sx.closePath();sx.fill()}
+  else{const hd=v.hard/100,g=sx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,rgba(v.col,1));g.addColorStop(Math.min(.999,hd),rgba(v.col,1));g.addColorStop(1,rgba(v.col,0));
+    sx.fillStyle=g;sx.beginPath();sx.arc(x,y,r,0,7);sx.fill()}
+}
+function stroke(p){
+  const r=v.size/2,st=Math.max(1,v.size*.12);
+  if(!last)stamp(p[0],p[1],r);else{const dx=p[0]-last[0],dy=p[1]-last[1],n=Math.ceil(Math.hypot(dx,dy)/st);for(let i=1;i<=n;i++)stamp(last[0]+dx*i/n,last[1]+dy*i/n,r)}
+  last=p;draw();
+}
+function swell(){ // narrow → wide → narrow over the whole stroke
+  sx.globalCompositeOperation='source-over';sx.clearRect(0,0,CW,CH);sx.drawImage(snap,0,0);
+  const r=v.size/2,cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const tot=cum[cum.length-1],st=Math.max(1,v.size*.08);
+  if(tot<1){stamp(pts[0][0],pts[0][1],r*.3);return}
+  for(let i=1;i<pts.length;i++){const dx=pts[i][0]-pts[i-1][0],dy=pts[i][1]-pts[i-1][1],n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/st));
+    for(let j=1;j<=n;j++){const u=(cum[i-1]+(cum[i]-cum[i-1])*j/n)/tot;stamp(pts[i-1][0]+dx*j/n,pts[i-1][1]+dy*j/n,Math.max(.6,r*Math.pow(Math.sin(Math.PI*u),.8)))}}
+}
+c.addEventListener('pointerdown',e=>{
+  c.setPointerCapture(e.pointerId);last=null;const p=pos(e);push([L[A]]);
+  if(v.bst=='Swell'){snap.width=CW;snap.height=CH;sn.drawImage(S,0,0);pts=[p];swell();draw()}else{pts=null;stroke(p)}
+});
+c.addEventListener('pointermove',e=>{if(!e.buttons)return;if(pts){pts.push(pos(e));swell();draw()}else stroke(pos(e))});
+c.addEventListener('pointerup',()=>{last=null;pts=null});
+
+// animation
+const F=$('#F'),sc=$('#sc');let play=false,t0=0,busy=false;
+const V=document.createElement('canvas'),vx=V.getContext('2d');
+F.addEventListener('input',e=>{const t=e.target;if(!t.dataset.id)return;read(t);sync(t);draw()});
+sc.oninput=()=>{tt=sc.value/1000*v.adu;$('#tm').value=tt.toFixed(1)+'s';draw()};
+function loop(now){
+  if(!play)return;const e=(now-t0)/1000;
+  tt=e%v.adu;sc.value=tt/v.adu*1000;$('#tm').value=tt.toFixed(1)+'s';render();
+  requestAnimationFrame(loop);
+}
+function go(){if(busy)return;play=true;t0=performance.now()-tt*1000;$('#pl').textContent='Pause';requestAnimationFrame(loop)}
+function pause(){play=false;$('#pl').textContent='Play'}
+$('#pl').onclick=()=>play?pause():go();
+
+// video export: frames are rendered one by one at a fixed timestep (not wall clock),
+// so slow effects (bevel) never drop frames or starve the encoder.
+const FPS=30,sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function vframe(i){ // render frame i into V (even size, opaque background)
+  tt=i/FPS;render();vx.fillStyle=v.bgon?v.bg:'#fff';vx.fillRect(0,0,V.width,V.height);vx.drawImage(c,0,0);
+  sc.value=tt/v.adu*1000;$('#tm').value=tt.toFixed(1)+'s';
+}
+function save(blob,ext){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LUCIDFAX.'+ext;a.click()}
+async function viaWebCodecs(nf,br,prog){
+  if(!window.VideoEncoder||!window.Mp4Muxer)return false;
+  const W=V.width,H=V.height;let cfg=null,kind;
+  for(const[k,codec]of[['avc','avc1.640034'],['avc','avc1.640033'],['avc','avc1.4d0034'],['avc','avc1.42003e'],['vp9','vp09.00.51.08'],['av1','av01.0.16M.08']]){
+    const c0={codec,width:W,height:H,bitrate:br,framerate:FPS,bitrateMode:'variable',latencyMode:'quality',...(k=='avc'?{avc:{format:'avc'}}:{})};
+    try{if((await VideoEncoder.isConfigSupported(c0)).supported){cfg=c0;kind=k;break}}catch(e){}
+  }
+  if(!cfg)return false;
+  const mux=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:kind,width:W,height:H,frameRate:FPS},fastStart:'in-memory'});
+  let err=null;const enc=new VideoEncoder({output:(ch,m)=>mux.addVideoChunk(ch,m),error:e=>err=e});
+  enc.configure(cfg);
+  for(let i=0;i<nf;i++){
+    vframe(i);
+    const fr=new VideoFrame(V,{timestamp:Math.round(i*1e6/FPS),duration:Math.round(1e6/FPS)});
+    enc.encode(fr,{keyFrame:i%FPS==0});fr.close();
+    while(enc.encodeQueueSize>2&&!err)await sleep(1);
+    if(err)throw err;prog(i/nf);await sleep(0);
+  }
+  await enc.flush();enc.close();if(err)throw err;mux.finalize();
+  save(new Blob([mux.target.buffer],{type:'video/mp4'}),'mp4');return true;
+}
+async function viaRecorder(nf,br,prog){ // fallback when WebCodecs is unavailable: one requestFrame per rendered frame
+  const mt=window.MediaRecorder&&['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+  if(!mt){alert('Video recording is not supported in this browser');return}
+  const st=V.captureStream(0),tr=st.getVideoTracks()[0],ch=[];
+  const rec=new MediaRecorder(st,{mimeType:mt,videoBitsPerSecond:br});
+  rec.ondataavailable=e=>e.data.size&&ch.push(e.data);
+  const done=new Promise(r=>rec.onstop=r);
+  vframe(0);rec.start();
+  for(let i=0;i<nf;i++){
+    if(i){rec.pause();vframe(i);rec.resume()} // paused time is not counted, so slow frames don't stretch the video
+    tr.requestFrame?tr.requestFrame():st.requestFrame();prog(i/nf);
+    const t=performance.now()+1000/FPS;while(performance.now()<t)await sleep(Math.max(1,t-performance.now()));
+  }
+  rec.stop();await done;save(new Blob(ch,{type:mt}),mt.includes('mp4')?'mp4':'webm');
+}
+$('#vx').onclick=async()=>{
+  if(busy)return;pause();busy=true;const b=$('#vx'),keep=tt;
+  V.width=c.width+(c.width&1);V.height=c.height+(c.height&1); // H.264 needs even sizes
+  const nf=Math.max(1,Math.round(v.adu*FPS)),br=Math.round(Math.min(80e6,Math.max(16e6,V.width*V.height*FPS*.4)));
+  const prog=f=>b.textContent='Exporting '+Math.round(f*100)+'%';
+  try{if(!await viaWebCodecs(nf,br,prog))await viaRecorder(nf,br,prog)}
+  catch(e){console.error(e);try{await viaRecorder(nf,br,prog)}catch(e2){alert('Video export failed: '+e2.message)}}
+  busy=false;b.textContent='Export video';tt=keep;sc.value=tt/v.adu*1000;$('#tm').value=tt.toFixed(1)+'s';draw();
+};
+
+// UI
+P.addEventListener('input',e=>{
+  const t=e.target;if(!t.dataset.id)return;read(t);sync(t);
+  if(t.dataset.id=='pre'&&PRE[v.pre]){P.querySelector('[data-id=w]').value=v.w=PRE[v.pre][0];P.querySelector('[data-id=h]').value=v.h=PRE[v.pre][1]}
+  else if(t.dataset.id=='w'||t.dataset.id=='h')P.querySelector('[data-id=pre]').value=v.pre='Custom';
+  updMir();draw();
+});
+$('#ap').onclick=()=>push(L)||resize(Math.min(4096,Math.max(16,v.w|0)),Math.min(4096,Math.max(16,v.h|0)));
+$('#clr').onclick=()=>{if(confirm('Clear all layers?')){push(L);L.forEach(l=>l.x.clearRect(0,0,CW,CH));draw()}};
+$('#ex').onclick=()=>{
+  render();const o=document.createElement('canvas');o.width=c.width;o.height=c.height;const x=o.getContext('2d'),f=v.fmt;
+  if(f!='PNG'){x.fillStyle=v.bgon?v.bg:'#fff';x.fillRect(0,0,o.width,o.height)}
+  x.drawImage(c,0,0);const n='LUCIDFAX';
+  const dl=(u,e)=>{const a=document.createElement('a');a.href=u;a.download=n+'.'+e;a.click()};
+  if(f=='PNG')o.toBlob(b=>dl(URL.createObjectURL(b),'png'));
+  else if(f=='JPG')o.toBlob(b=>dl(URL.createObjectURL(b),'jpg'),'image/jpeg',.95);
+  else{const{jsPDF}=window.jspdf,w=o.width,h=o.height,p=new jsPDF({unit:'px',format:[w,h],orientation:w>h?'l':'p',hotfixes:['px_scaling']});
+    p.addImage(o.toDataURL('image/jpeg',.95),'JPEG',0,0,w,h);p.save(n+'.pdf')}
+};
+document.querySelectorAll('#th button').forEach(b=>b.onclick=()=>{
+  document.documentElement.dataset.theme=b.dataset.t;
+  document.querySelectorAll('#th button').forEach(x=>x.classList.toggle('on',x==b))});
+$('#th button').classList.add('on');
+resize(1080,1080);updMir();
+</script></body></html>
